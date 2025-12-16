@@ -3,6 +3,7 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
+const cardRoutes = require("./routes/card.routes");
 
 const app = express();
 
@@ -12,9 +13,13 @@ app.use(express.json());
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/cards", cardRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running" });
 });
+
+
+
 
 module.exports = app;
