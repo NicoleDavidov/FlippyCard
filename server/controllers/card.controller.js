@@ -1,30 +1,29 @@
 const Card = require("../models/Card");
+const AppError = require("../utils/AppError");
 
 /**
  * Create a new card
- * - User must be authenticated
- * - level is required (1–10)
- * - createdBy: "user"
- * - createdByUser: userId
+ * - Auth required
+ * - level: 1–10
+ * - createdBy: user
  */
-exports.createCard = async (req, res) => {
+exports.createCard = async (req, res, next) => {
   try {
     const { front, back, explanation, level } = req.body;
 
-    // basic validation
     if (!front || !back || level === undefined) {
-      return res.status(400).json({
-        message: "Front, back and level are required"
-      });
+      return next(
+        new AppError("Front, back and level are required", 400)
+      );
     }
 
     if (level < 1 || level > 10) {
-      return res.status(400).json({
-        message: "Level must be between 1 and 10"
-      });
+      return next(
+        new AppError("Level must be between 1 and 10", 400)
+      );
     }
 
-    const card = new Card({
+    const card = await Card.create({
       front,
       back,
       explanation,
@@ -33,24 +32,21 @@ exports.createCard = async (req, res) => {
       createdByUser: req.userId
     });
 
-    await card.save();
-
     res.status(201).json({
       message: "Card created successfully",
       card
     });
   } catch (error) {
-    console.error("Create card error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
 /**
  * Get all cards available for the user
  * - system cards
- * - cards created by this user
+ * - user cards
  */
-exports.getCards = async (req, res) => {
+exports.getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({
       $or: [
@@ -61,7 +57,6 @@ exports.getCards = async (req, res) => {
 
     res.json(cards);
   } catch (error) {
-    console.error("Get cards error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
